@@ -36,8 +36,8 @@ SECRET_KEY = os.getenv("SECRET_KEY", "fallback-insecure-key")
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
 # Which domains can access our backend.
-# In production, this would be ["zuvo.app", "api.zuvo.app"]
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+# In production, set ALLOWED_HOSTS env var (comma-separated).
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 
 # ──────────────────────────────────────────────
@@ -76,6 +76,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",        # MUST be first — handles CORS
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",   # Serve static files in production
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -122,16 +123,30 @@ WSGI_APPLICATION = "zuvo_backend.wsgi.application"
 # This connects Django to our PostgreSQL database.
 # The values come from the .env file we created in Step 5.
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",  # Use PostgreSQL
-        "NAME": os.getenv("DB_NAME", "zuvo_db"),
-        "USER": os.getenv("DB_USER", "zuvo_user"),
-        "PASSWORD": os.getenv("DB_PASSWORD", ""),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"),
+# If DATABASE_URL is set (Railway provides this), use it.
+# Otherwise fall back to individual DB_* env vars for local dev.
+import dj_database_url
+
+_database_url = os.getenv("DATABASE_URL")
+if _database_url:
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=_database_url,
+            conn_max_age=600,
+            ssl_require=not DEBUG,
+        )
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("DB_NAME", "zuvo_db"),
+            "USER": os.getenv("DB_USER", "zuvo_user"),
+            "PASSWORD": os.getenv("DB_PASSWORD", ""),
+            "HOST": os.getenv("DB_HOST", "localhost"),
+            "PORT": os.getenv("DB_PORT", "5432"),
+        }
+    }
 
 
 # ──────────────────────────────────────────────
@@ -176,6 +191,12 @@ USE_TZ = True              # Enable timezone-aware datetimes
 # ──────────────────────────────────────────────
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
@@ -187,12 +208,22 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # on different ports. Browsers block this by default.
 # CORS headers tell the browser: "It's okay, let them talk."
 
-CORS_ALLOWED_ORIGINS = [
-    os.getenv("FRONTEND_URL", "http://localhost:3000"),
-    "http://localhost:3001",  # Alternative dev port
-]
+# CORS: reads FRONTEND_URL from env. Supports comma-separated list.
+_frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+CORS_ALLOWED_ORIGINS = [u.strip() for u in _frontend_url.split(",") if u.strip()]
+if "http://localhost:3001" not in CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS.append("http://localhost:3001")
 
 CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent
+
+# ──────────────────────────────────────────────
+# PRODUCTION SECURITY
+# ──────────────────────────────────────────────
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "True") == "True"
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 
 # ──────────────────────────────────────────────
