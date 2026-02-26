@@ -427,12 +427,11 @@ class UserUpdateSerializer(serializers.Serializer):
 class OnboardingSerializer(serializers.Serializer):
     """
     Validates onboarding data (first-time profile setup).
-    
+
     Input: {
         "full_name": "John Miller",
         "job_title": "Marketing Head",
         "timezone": "Asia/Kolkata",
-        "avatar_url": null,
         "notification_preferences": {
             "task_assigned": true,
             "mentioned": true,
@@ -446,7 +445,6 @@ class OnboardingSerializer(serializers.Serializer):
     full_name = serializers.CharField(max_length=255, required=True)
     job_title = serializers.CharField(max_length=255, required=True)
     timezone = serializers.CharField(max_length=50, required=False, default="UTC")
-    avatar_url = serializers.URLField(required=False, allow_null=True, allow_blank=True)
     notification_preferences = serializers.JSONField(required=False, default=dict)
 
 

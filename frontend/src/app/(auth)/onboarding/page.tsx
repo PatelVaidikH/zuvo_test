@@ -2,13 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { ROLE_HOME_ROUTES } from "@/lib/constants";
 import type { NotificationPreferences } from "@/types";
 
 import {
-  Camera,
   ChevronDown,
   ArrowRight,
   AlertCircle,
@@ -30,7 +28,6 @@ export default function OnboardingPage() {
   const [timezone, setTimezone] = useState(
     Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
   );
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const [notifications, setNotifications] = useState<NotificationPreferences>({
     task_assigned: true,
@@ -69,7 +66,6 @@ export default function OnboardingPage() {
       full_name: fullName.trim(),
       job_title: jobTitle.trim(),
       timezone,
-      avatar_url: avatarUrl,
       notification_preferences: notifications,
     });
 
@@ -139,36 +135,6 @@ export default function OnboardingPage() {
                     handleNextStep();
                   }}
                 >
-                  {/* Avatar Upload Placeholder */}
-                  <div className="flex justify-center mb-2">
-                    <div className="group relative w-24 h-24 rounded-full border-2 border-dashed border-border hover:border-primary transition-all duration-300 cursor-pointer flex items-center justify-center bg-transparent hover:bg-secondary/50">
-                      <input
-                        type="file"
-                        aria-label="Upload profile picture"
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        onChange={(e) => {
-                          // Basic file handler (optional, logic just requires a string URL currently)
-                          if (e.target.files?.[0]) {
-                            setAvatarUrl(
-                              URL.createObjectURL(e.target.files[0]),
-                            );
-                          }
-                        }}
-                      />
-                      {avatarUrl ? (
-                        <Image
-                          src={avatarUrl}
-                          alt="Avatar Preview"
-                          width={96}
-                          height={96}
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <Camera className="text-muted-foreground group-hover:text-primary transition-colors w-8 h-8" />
-                      )}
-                    </div>
-                  </div>
-
                   {/* Role Badge */}
                   <div className="flex justify-center">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary text-muted-foreground border border-border capitalize">

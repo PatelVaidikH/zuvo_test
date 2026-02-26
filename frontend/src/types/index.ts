@@ -149,7 +149,6 @@ export interface OnboardingFormData {
   full_name: string;
   job_title: string;
   timezone: string;
-  avatar_url?: string | null;
   notification_preferences: NotificationPreferences;
 }
 

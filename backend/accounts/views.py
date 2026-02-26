@@ -801,15 +801,11 @@ class OnboardingView(APIView):
         user.full_name = data["full_name"]
         user.job_title = data["job_title"]
         user.timezone = data.get("timezone", "UTC")
-
-        if data.get("avatar_url"):
-            user.avatar_url = data["avatar_url"]
-
         user.is_onboarded = True
 
         user.save(update_fields=[
             "full_name", "job_title", "timezone",
-            "avatar_url", "is_onboarded", "updated_at",
+            "is_onboarded", "updated_at",
         ])
 
         # Log it
@@ -1640,14 +1636,17 @@ class ActivityFeedView(APIView):
         team_id = request.query_params.get("team_id")
         before = request.query_params.get("before")
 
-        # Base query: company-scoped
+        # Base query: company-scoped, never show super_admin actions
         queryset = AuditLog.objects.filter(
             company=user.company,
+        ).exclude(
+            user__role="super_admin",
         ).select_related("user").order_by("-created_at")
 
         # Role-based scoping
         if user.role == "admin":
-            pass  # Admin sees everything in their company
+            # Admin sees only their own actions (not other admins')
+            queryset = queryset.filter(user=user)
         elif user.role == "dept_head":
             managed_team_ids = list(TeamMember.objects.filter(
                 user=user, team_role="dept_head",

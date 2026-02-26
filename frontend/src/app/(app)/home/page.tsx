@@ -822,7 +822,7 @@ export default function HomePage() {
                     value={createName}
                     onChange={(e) => setCreateName(e.target.value)}
                     disabled={isCreating}
-                    className="w-full rounded-lg border border-border bg-transparent text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-primary text-sm py-3 outline-none transition-all"
+                    className="w-full rounded-lg border border-border bg-transparent text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-primary text-sm px-3 py-3 outline-none transition-all"
                     placeholder="e.g. Marketing, Engineering"
                   />
                 </div>
@@ -839,7 +839,7 @@ export default function HomePage() {
                     value={createDescription}
                     onChange={(e) => setCreateDescription(e.target.value)}
                     disabled={isCreating}
-                    className="w-full rounded-lg border border-border bg-transparent text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-primary text-sm py-2.5 resize-none outline-none transition-all"
+                    className="w-full rounded-lg border border-border bg-transparent text-foreground placeholder:text-muted-foreground/70 focus:border-primary focus:ring-1 focus:ring-primary text-sm px-3 py-2.5 resize-none outline-none transition-all"
                     placeholder="What is this team working on?"
                   />
                 </div>
