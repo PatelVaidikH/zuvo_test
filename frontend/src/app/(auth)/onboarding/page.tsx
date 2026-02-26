@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { ROLE_HOME_ROUTES } from "@/lib/constants";
@@ -37,11 +37,15 @@ export default function OnboardingPage() {
     new_team_member: false,
   });
 
-  // Already onboarded? Redirect.
-  if (user?.is_onboarded) {
-    router.push(ROLE_HOME_ROUTES[user.role] || "/home");
-    return null;
-  }
+  // Already onboarded? Redirect (must be in useEffect to avoid render-time side-effects).
+  useEffect(() => {
+    if (user?.is_onboarded) {
+      router.push(ROLE_HOME_ROUTES[user.role] || "/home");
+    }
+  }, [user, router]);
+
+  // Render nothing while redirect is in flight
+  if (user?.is_onboarded) return null;
 
   // ── Step 1 → Step 2 ──
   const handleNextStep = () => {

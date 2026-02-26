@@ -279,10 +279,10 @@ export default function TeamMembersPage() {
               {pagedMembers.map((m) => (
                 <div
                   key={m.id}
-                  className="bg-white rounded-lg border border-border p-4 flex items-center justify-between group hover:shadow-sm transition-all"
+                  className="bg-card rounded-lg border border-border p-4 flex items-center gap-4 group hover:shadow-sm transition-all"
                 >
-                  {/* Avatar + name/email */}
-                  <div className="flex items-center gap-4 w-1/3 min-w-0">
+                  {/* Avatar + name/email — takes all remaining space */}
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
                     <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-sm font-bold text-foreground shrink-0">
                       {getInitials(m.user.full_name)}
                     </div>
@@ -301,31 +301,31 @@ export default function TeamMembersPage() {
                     </div>
                   </div>
 
-                  {/* Role badge */}
-                  <div className="w-1/4">
+                  {/* Role badge — fixed width so all rows align */}
+                  <div className="w-28 shrink-0">
                     <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
                         m.team_role === "dept_head"
-                          ? "bg-primary/10 text-primary"
-                          : "bg-secondary text-muted-foreground"
+                          ? "bg-primary/10 text-primary border-primary/20"
+                          : "bg-secondary text-foreground/70 border-border"
                       }`}
                     >
                       {m.team_role === "dept_head" ? "Dept Head" : "Employee"}
                     </span>
                   </div>
 
-                  {/* Status */}
-                  <div className="w-1/4 flex items-center gap-2">
+                  {/* Status — fixed width so all rows align */}
+                  <div className="w-28 shrink-0 flex items-center gap-2">
                     {m.user.is_password_temp ? (
                       <>
-                        <div className="w-2 h-2 rounded-full bg-amber-400" />
+                        <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
                         <span className="text-xs font-medium text-amber-600">
                           Pending Setup
                         </span>
                       </>
                     ) : (
                       <>
-                        <div className="w-2 h-2 rounded-full bg-primary" />
+                        <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
                         <span className="text-xs font-medium text-foreground">
                           Active
                         </span>
@@ -333,58 +333,60 @@ export default function TeamMembersPage() {
                     )}
                   </div>
 
-                  {/* Row action menu */}
-                  {canManageMembers && m.user.id !== user?.id && (
-                    <div
-                      className="relative flex justify-end"
-                      ref={openMenuId === m.id ? menuRef : null}
-                    >
-                      <button
-                        onClick={() =>
-                          setOpenMenuId(openMenuId === m.id ? null : m.id)
-                        }
-                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground p-1.5 rounded hover:bg-secondary transition-all"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
+                  {/* Action menu — always reserve 32 px so every row stays aligned */}
+                  <div
+                    className="w-8 shrink-0 flex justify-end relative"
+                    ref={openMenuId === m.id ? menuRef : null}
+                  >
+                    {canManageMembers && m.user.id !== user?.id && (
+                      <>
+                        <button
+                          onClick={() =>
+                            setOpenMenuId(openMenuId === m.id ? null : m.id)
+                          }
+                          className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground p-1.5 rounded hover:bg-secondary transition-all"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
 
-                      {openMenuId === m.id && (
-                        <div className="absolute right-0 top-8 z-20 bg-white border border-border rounded-lg shadow-lg py-1 min-w-40">
-                          {m.team_role === "employee" ? (
+                        {openMenuId === m.id && (
+                          <div className="absolute right-0 top-8 z-20 bg-card border border-border rounded-lg shadow-lg py-1 min-w-40">
+                            {m.team_role === "employee" ? (
+                              <button
+                                onClick={() =>
+                                  handleChangeRole(m.user.id, "dept_head")
+                                }
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
+                              >
+                                <ShieldCheck className="w-4 h-4 text-primary" />
+                                Make Dept Head
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() =>
+                                  handleChangeRole(m.user.id, "employee")
+                                }
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
+                              >
+                                <ShieldCheck className="w-4 h-4 text-muted-foreground" />
+                                Make Employee
+                              </button>
+                            )}
+                            <div className="my-1 border-t border-border" />
                             <button
                               onClick={() =>
-                                handleChangeRole(m.user.id, "dept_head")
+                                handleRemoveMember(m.user.id, m.user.full_name)
                               }
-                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
                             >
-                              <ShieldCheck className="w-4 h-4 text-primary" />
-                              Make Dept Head
+                              <UserMinus className="w-4 h-4" />
+                              Remove from Team
                             </button>
-                          ) : (
-                            <button
-                              onClick={() =>
-                                handleChangeRole(m.user.id, "employee")
-                              }
-                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-secondary transition-colors"
-                            >
-                              <ShieldCheck className="w-4 h-4 text-muted-foreground" />
-                              Make Employee
-                            </button>
-                          )}
-                          <div className="my-1 border-t border-border" />
-                          <button
-                            onClick={() =>
-                              handleRemoveMember(m.user.id, m.user.full_name)
-                            }
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
-                          >
-                            <UserMinus className="w-4 h-4" />
-                            Remove from Team
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useTransition } from "react";
+import { useEffect, useState, useCallback, useTransition, useRef } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
@@ -264,6 +264,59 @@ export default function ListViewPage() {
   const [createError, setCreateError] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [showAssigneePicker, setShowAssigneePicker] = useState(false);
+
+  // ── Description formatting ──
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleFormat = (type: "bold" | "italic" | "list" | "link") => {
+    const ta = descriptionRef.current;
+    if (!ta) return;
+
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const sel = createDescription.slice(start, end);
+    const before = createDescription.slice(0, start);
+    const after = createDescription.slice(end);
+
+    let insert = "";
+    let newSelStart = start;
+    let newSelEnd = start;
+
+    if (type === "bold") {
+      const placeholder = sel || "bold text";
+      insert = `**${placeholder}**`;
+      newSelStart = start + 2;
+      newSelEnd = start + 2 + placeholder.length;
+    } else if (type === "italic") {
+      const placeholder = sel || "italic text";
+      insert = `*${placeholder}*`;
+      newSelStart = start + 1;
+      newSelEnd = start + 1 + placeholder.length;
+    } else if (type === "list") {
+      if (sel) {
+        insert = sel
+          .split("\n")
+          .map((line, i) => `${i + 1}. ${line}`)
+          .join("\n");
+      } else {
+        insert = "1. ";
+      }
+      newSelStart = start + insert.length;
+      newSelEnd = newSelStart;
+    } else if (type === "link") {
+      const text = sel || "link text";
+      insert = `[${text}](url)`;
+      // Pre-select "url" so the user can type the URL immediately
+      newSelStart = start + text.length + 3;
+      newSelEnd = start + insert.length - 1;
+    }
+
+    setCreateDescription(before + insert + after);
+    setTimeout(() => {
+      ta.focus();
+      ta.setSelectionRange(newSelStart, newSelEnd);
+    }, 0);
+  };
 
   // ── Permissions ──
   const isAdmin =
@@ -1063,20 +1116,41 @@ export default function ListViewPage() {
             {/* Description */}
             <div className="px-8 py-2">
               <div className="mb-2 flex items-center gap-4 text-muted-foreground border-b border-border/40 pb-2">
-                <button className="hover:text-foreground transition-colors p-1 rounded hover:bg-secondary/50">
+                <button
+                  type="button"
+                  title="Bold (wraps selection with **)"
+                  onClick={() => handleFormat("bold")}
+                  className="hover:text-foreground transition-colors p-1 rounded hover:bg-secondary/50"
+                >
                   <Bold className="w-4 h-4" />
                 </button>
-                <button className="hover:text-foreground transition-colors p-1 rounded hover:bg-secondary/50">
+                <button
+                  type="button"
+                  title="Italic (wraps selection with *)"
+                  onClick={() => handleFormat("italic")}
+                  className="hover:text-foreground transition-colors p-1 rounded hover:bg-secondary/50"
+                >
                   <Italic className="w-4 h-4" />
                 </button>
-                <button className="hover:text-foreground transition-colors p-1 rounded hover:bg-secondary/50">
+                <button
+                  type="button"
+                  title="Numbered list"
+                  onClick={() => handleFormat("list")}
+                  className="hover:text-foreground transition-colors p-1 rounded hover:bg-secondary/50"
+                >
                   <ListOrdered className="w-4 h-4" />
                 </button>
-                <button className="hover:text-foreground transition-colors p-1 rounded hover:bg-secondary/50">
+                <button
+                  type="button"
+                  title="Insert link"
+                  onClick={() => handleFormat("link")}
+                  className="hover:text-foreground transition-colors p-1 rounded hover:bg-secondary/50"
+                >
                   <Link className="w-4 h-4" />
                 </button>
               </div>
               <textarea
+                ref={descriptionRef}
                 value={createDescription}
                 onChange={(e) => setCreateDescription(e.target.value)}
                 placeholder="Add a description..."
