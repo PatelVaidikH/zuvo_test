@@ -1,0 +1,13 @@
+asgiref
+bcrypt
+Django
+django-cors-headers
+djangorestframework
+djangorestframework_simplejwt
+psycopg2-binary
+PyJWT
+python-dotenv
+sqlparse
+gunicorn
+whitenoise
+dj-database-url
