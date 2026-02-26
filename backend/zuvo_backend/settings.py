@@ -62,7 +62,7 @@ INSTALLED_APPS = [
     "corsheaders",                 # Allow frontend to talk to backend
 
     # --- Our apps ---
-    "accounts",                    # Users, auth, invites (Phase 1)
+    "accounts.apps.AccountsConfig",                    # Users, auth, invites (Phase 1)
 ]
 
 
@@ -189,6 +189,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOWED_ORIGINS = [
     os.getenv("FRONTEND_URL", "http://localhost:3000"),
+    "http://localhost:3001",  # Alternative dev port
 ]
 
 CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent
